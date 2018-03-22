@@ -6,6 +6,7 @@ import re
 from bs4 import BeautifulSoup
 import random
 import time
+import argparse
 
 LOGGER = logging.getLogger()
 _HANDLER = logging.StreamHandler()
@@ -112,8 +113,8 @@ def borrow(apply_date,start,room="any",duration=4):
     """
         配置借图书馆的策略，需要日期、开始时间，可选房间名、借讨论室时长
     """
-    english2date = {'today': 0, 'tommorrow': 1}
-    weekday = ['mon', 'tues', 'wed', 'thur', 'fri', 'sat', 'sun']
+    english2date = {'today': 0, 'tomorrow': 1}
+    weekday = ['mon', 'thue', 'wed', 'thur', 'fri', 'sat', 'sun']
     if apply_date in english2date:
         apply_date = english2date[apply_date]
         date_s = date.isoformat(date.today()+timedelta(days = apply_date))
@@ -155,16 +156,31 @@ def apply(applicationid, password, roomname):
     member2.apply(applicationid, password, roomname)
 
 def main():
-    if len(sys.argv) == 1:
-        infos = borrow('today',time.localtime(time.time())[3],'any')
-    elif len(sys.argv) == 2:
-        infos = borrow(sys.argv[1],time.localtime(time.time())[3],'any')
-    elif len(sys.argv) == 3:
-        infos = borrow(sys.argv[1],float(sys.argv[2]),'any')
-    elif len(sys.argv) == 4:
-        infos = borrow(sys.argv[1],float(sys.argv[2]),sys.argv[3])
-    elif len(sys.argv) == 5:
-        infos = borrow(sys.argv[1],float(sys.argv[2]),sys.argv[3],int(sys.argv[4]))
+    parser = argparse.ArgumentParser(
+        description = ("一个自动借小组讨论室的脚本"))
+    parser.add_argument("-l","--last",
+                        help = "借阅时长 (default:4小时), [1/2/3/4]",
+                        type = int,
+                        default = 4)
+    parser.add_argument("-r","--room",
+                        help = "房间名称 (default: 任何), [any/A216/.../1/2/...]",
+                        default = 'any')
+    parser.add_argument("-d","--date",
+                        help = "使用日期 (default: 今天), [today/tomorrow/Mon/Thue/.../0/1/2/...]",
+                        default = 'today')
+    parser.add_argument("-s","--start",
+                        help = "开始时间 (default: 整点), [8/9/10/11/.../21/22/8.5/9.5/10.5/...]",
+                        type = float,
+                        default = time.localtime(time.time())[3])
+    #debug
+    parser.add_argument("--debug",
+                        help = "调试模式(default:False)",
+                        type = bool,
+                        default = False)
+    opts = parser.parse_args()
+    if opts.debug:
+        LOGGER.setLevel(logging.DEBUG)
+    infos = borrow(opts.date, opts.start, opts.room, opts.last)
     for applicationid, password, roomname in infos:
         apply(applicationid, password, roomname)
 
