@@ -21,7 +21,8 @@ class Student:
         self.RESERVE_PAGE = 'http://studyroom.lib.sjtu.edu.cn/reserve_add.asp'
         self.LIST_PAGE = 'http://studyroom.lib.sjtu.edu.cn/user_reserve_list.asp'
         self.APPLY = 'http://studyroom.lib.sjtu.edu.cn/reserve_plus_ok.asp'
-        self.JASiteCookies=['CJALMzLoXByYqrBtDZ7%2BnabRLXpFQMSvjyu38MuNE29ULaVzeR5eZeUOTLmuXGTklbnq4iW043LkB9s3I62CWUJn8YeHf%2F%2BesnLmExvhL2ETIjMIWymXDc6PPNi8FtYK3e5dtswZ3kLVX%2BF42qrSpl0dShqxNhKOGbLilacHH7azUN4VjPT%2BbaXeFqWH6SBiSLMX2P1NYipdxx%2FdTc8tgZwkaXnnEg%2B7ruGACZ6VZYyAbp0JXIWzVbHm7dqosvEj5omgUnP1Iee1CF5yHJYLIguf1PCDgvYX5wmLgEVOam0p2oCS98n%2BJ5m7tAZKvmmXkgbYfBmRUc9mUnTQANe3de8vwdmoUElwm3V96qSipTFDAAZl3Djsji7FlYYjeRf7QRC%2B57R7pffgkDlAtl1ZnPRFUdJq3I6l9A%3D%3D',
+        self.JASiteCookies=[
+              'CJALMzLoXByYqrBtDZ7%2BnabRLXpFQMSvjyu38MuNE29ULaVzeR5eZeUOTLmuXGTklbnq4iW043LkB9s3I62CWUJn8YeHf%2F%2BesnLmExvhL2ETIjMIWymXDc6PPNi8FtYK3e5dtswZ3kLVX%2BF42qrSpl0dShqxNhKOGbLilacHH7azUN4VjPT%2BbaXeFqWH6SBiSLMX2P1NYipdxx%2FdTc8tgZwkaXnnEg%2B7ruGACZ6VZYyAbp0JXIWzVbHm7dqosvEj5omgUnP1Iee1CF5yHJYLIguf1PCDgvYX5wmLgEVOam0p2oCS98n%2BJ5m7tAZKvmmXkgbYfBmRUc9mUnTQANe3de8vwdmoUElwm3V96qSipTFDAAZl3Djsji7FlYYjeRf7QRC%2B57R7pffgkDlAtl1ZnPRFUdJq3I6l9A%3D%3D',
               'CLrWsKhVhoJxvoRLhDUPQ1GiTsdAcRmLefMwq%2FmJiaL40GH8XQJ7GDGFNFIWbwPwdOoa6KAkFCCmuEoncEcJ%2B5MReE5IC%2FnkN7d%2BSxNxbh%2FDORRKlpf92f2ryQ67%2FgKgkgXBz1ONFXr6kK1%2Fo3WguVB2OZytkMz5TYD0aXjO9RuqLTmR271OthJ5yYQ76vxsH%2FrNicGfKeu1r%2Fr3ddkq9N9F8k96yrx%2Fn%2BCzuniNfv49xbbS6RwbbLThmLM5wb1FhtNmjNIi%2F9o6y2xHcgNy82MyLA63qa7s2axMmkj%2BFA7Nytl%2FqG1YDoFFrNZkY0WBAT3XHz8dok24FpxCo%2Fg3odglPpC4Dwv4L%2FLNm6zPJe3axYU4wXzuHaIi3Dp4FgEyAkALlYnC7STvO5qwggIN6VBdoTJ7sLwKrOO4HgCMz7dPOkesQgNGydk%3D',
               'CBKl3ILfCVTIPdwvl8yU4pvlSGAcRLJmclAE1tDlfEAfKoB0si5cICJOHcDzCoGg57UngZGHD4tUNNqHKHYTywcn5B8vINDLnLtcz%2BjZBqvQWRoPXEZljAIhqNutxnDL2%2BcG0WqvYjFcau498ZoFeH1AWgoQqskp5MChiKppSQCbIzeAQCSQvzU1eoYqEWY0pISpkqD8Z%2BqGiWSfQMIPBuYZ5r7yyK39DwlEkApksPUk4Zhb0xJyC%2B8sCF3WHjheMHeV%2Bx2M%2F444G2K68CnfJNUcQD%2FSA%2FoRVeJjVJYRmr%2BATSOt2I5xkhgQexPkRBlTQkwxBWYCfiz5qPOiiUgJBKOJYyMKz%2FQBox14%2Bf1WwekX5jLzCLygpHXNuTnulxzgFmRG%2BKzdMve0iYIPDEsYkggv3mdA83%2FIUg%3D%3D',
               ]
@@ -41,7 +42,9 @@ class Student:
         if success in ideal_room.text:
             LOGGER.info('申请借阅成功\t人员id: %d\troomid:%s', self.memberid, roomid)
         else:
-            LOGGER.warning('申请借阅失败\t人员id: %d\troomid:%s', self.memberid, roomid)
+            soup = BeautifulSoup(ideal_room.text, "html.parser")
+            reason = soup.body.find_all(attrs={"class": "main row"})[0].script.getText().split("'")[1]
+            LOGGER.warning('申请借阅失败\t人员id: %d\troomid:%s\treason:%s', self.memberid, roomid, reason)
         return success in ideal_room.text
 
     def get_id_pass(self):
@@ -144,7 +147,7 @@ def apply(applicationid, password, roomname):
     member2.apply(applicationid, password, roomname)
 
 def main():
-    infos = borrow(0,'10:00','14:00',2)
+    infos = borrow(0,'10:00','14:00',3)
     for applicationid, password, roomname in infos:
         apply(applicationid, password, roomname)
 
